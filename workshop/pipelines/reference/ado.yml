@@ -1,0 +1,40 @@
+# Review receipt gate for Azure DevOps Pipelines (reference / take-home).
+#
+# What it does: on every PR, checks that the author's agent ran the review locally
+# and committed a report with zero open blockers. It runs no LLM and needs no secrets.
+#
+# Plug-in steps for your own repo (Azure Repos):
+#   1. Save this file as azure-pipelines/review-receipt-gate.yml (any path works).
+#   2. Copy check-review-receipt.ps1 to the path in SCRIPT below (or change SCRIPT).
+#   3. Decide where reports live and set REPORTS (default workshop/reviews).
+#   4. Pipelines → New pipeline → Azure Repos Git → Existing YAML file → pick this file.
+#   5. Make it required: Repos → Branches → (default branch) → Branch policies
+#      → Build validation → add this pipeline, Policy requirement: Required.
+#      (Azure Repos ignores the "pr:" trigger below; the branch policy is what runs it.)
+#   6. Optional: add -RestrictPaths to the script call to limit PRs to rules + reports.
+#
+# For GitHub-hosted code built in Azure DevOps, the "pr:" trigger below applies instead.
+
+trigger: none
+
+pr:
+  branches:
+    include: [main]           # your default branch
+
+pool:
+  vmImage: ubuntu-latest      # pwsh is preinstalled on Microsoft-hosted agents
+
+variables:
+  SCRIPT: ./scripts/check-review-receipt.ps1
+  REPORTS: workshop/reviews
+
+steps:
+  - checkout: self
+    fetchDepth: 0
+    persistCredentials: false
+
+  - pwsh: |
+      # The PR target branch, e.g. refs/heads/main → origin/main
+      $target = "$(System.PullRequest.TargetBranch)" -replace '^refs/heads/', ''
+      & $env:SCRIPT -BaseRef "origin/$target" -ReportFolder $env:REPORTS
+    displayName: Check review receipt

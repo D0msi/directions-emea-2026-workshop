@@ -1,2 +1,5 @@
 # Facilitator-only material: never committed, so attendee agents cannot read it.
 .instructor/
+
+# Pipeline lab step output: generated per attendee, never committed.
+pipelines/generated/

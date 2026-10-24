@@ -1,0 +1,29 @@
+name: Review receipt gate
+
+# The only workflow in the room repo. It does NOT run a review and calls no LLM:
+# each pair's own agent runs the BCQuality Review locally and commits the report.
+# This job only checks that receipt (see workshop/pipelines/gate/check-review-receipt.ps1).
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Review receipt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check review receipt
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: ./workshop/pipelines/gate/check-review-receipt.ps1 -BaseRef $env:BASE_SHA -RestrictPaths
