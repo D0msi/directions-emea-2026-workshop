@@ -18,4 +18,11 @@ Things to look for:
 
 ## `lab2-done/`
 
-A finished rule from a stance card and a rerun report showing it fire. *(Coming.)*
+A finished rule from a stance card, and a rerun report showing it fire.
+
+- [`no-table-locks-in-user-actions.md`](lab2-done/no-table-locks-in-user-actions.md): the rule, from card `performance/01-long-lock-user-action`, Side A. In a real run it lives at `custom/knowledge/performance/no-table-locks-in-user-actions.md`.
+- [`fallback-lab2.md`](lab2-done/fallback-lab2.md): the rerun with that rule in place (Claude Code, Claude Sonnet 5.5). Look for:
+  - the finding on `BookingMgt.Codeunit.al:78` citing `custom/knowledge/...`, which wasn't in the Lab 1 reports;
+  - `Suppressed:` at the end of Findings, where the Microsoft rule the custom rule displaced is listed.
+
+Note: this rerun was written before the report format switched to one bullet per rule per file, so the hardcoded-key rule appears once per line.

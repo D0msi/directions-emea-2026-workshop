@@ -75,6 +75,8 @@ Do not change any file except the report.
      inputs-available: [file-path]
      technologies: [al]
      bc-version: 25
+     countries: [w1]
+     application-area: [all]
      enabled-layers: [microsoft, community, custom]
      disabled-skills:
        - microsoft/skills/review/al-code-review.md
@@ -97,16 +99,17 @@ Do not change any file except the report.
        - community/skills/review/al-copilot-review.md
    ```
    - The `file-path` input is every file in **Review scope** above.
-   - `bc-version: 25` comes from the apps' `app.json` (`"application": "25.0.0.0"`). That isn't a guess, so use it.
+   - `bc-version: 25` comes from the apps' `app.json` (`"application": "25.0.0.0"`). That isn't a guess, so use it. `countries` and `application-area` are known too, so every dimension is supplied.
    - Entry should dispatch exactly five skills: `al-style-review`, `al-testing-review`, `al-performance-review`, `al-security-review` and `al-upgrade-review`. Everything else is disabled on purpose, so every pair in the room runs the same review.
 4. Execute every dispatched action skill as Entry and `skills/do.md` describe, reading `skills/read.md` on demand. In this lab:
    - Only leaf skills run, so the **Composition (super-skills)** parts of `skills/do.md` don't apply.
    - Rules in `custom/knowledge/` are part of the review. Where one contradicts a Microsoft or Community rule, the custom rule wins, and the losing rule goes in the report's suppressed list.
+   - **Two custom rules that contradict each other** on the same code: precedence can't decide, so don't pick a winner. Report one `info` finding at that location citing both rule paths, with the message starting `Disputed:`. The room settles it.
    - Include conditionally applicable rules (READ caps their findings at `medium` confidence).
    - You may **read** files outside the review scope for context (e.g. the tables a codeunit uses), but report findings only on scope files.
    - Keep each skill's JSON findings report in memory or in a temp folder **outside the repo**. Running `tools/Validate-FindingsReport.ps1` is optional.
    - BCQuality's PowerShell helpers take arrays. Call them from a `pwsh` session or `pwsh -Command "& ./tools/... -Paths @('a','b')"`, not with `pwsh -File`, which can't pass arrays.
-5. Write the report in the **Review report contract** format below. Copy findings, severities and rule paths from the skills' findings reports; don't invent findings, rule names or counts.
+5. Write the report in the **Review report contract** format below. Copy findings, severities and rule paths from the skills' findings reports; don't invent findings, rule names or counts. Entry's dispatch record doesn't need to be shown or saved.
 6. Reply with: the report path, the counts per severity, and the three findings you'd discuss first with your partner. Nothing more.
 
 If the review can't finish (time, context limits), write the report anyway with `outcome: partial` and say what was skipped.
@@ -217,9 +220,9 @@ Empty (write "Not triaged yet.") straight after a review.>
 
 Rules:
 - Nothing between the `# BCQuality Review` title and `## Blockers` except, optionally, one short summary line.
-- **One bullet per location.** When the same rule fires in three files, write three bullets with the same rule path; count each one.
+- **One bullet per rule per file.** When a rule fires on several lines of one file, write one bullet listing the lines (`file:12, 40, 61`). When it fires in three files, write three bullets. Severity counts are bullet counts.
+- Copy each finding's severity from the skill that produced it. Don't adjust severities afterwards. A severity that changes because a different rule now applies is expected.
 - With nothing suppressed, write `Suppressed: None.`
 - `reviewed_with`: the agent product, plus the model in brackets if known, e.g. `GitHub Copilot (agent mode, GPT-x)` or `Claude Code (Claude Sonnet x)`.
 - `blockers` counts blockers that have **no** `accept` or `reject` verdict. A `fix` verdict leaves the blocker open, since AmuseYou isn't changed in this lab.
-- Copy severities and rule paths from the findings reports. Never raise or lower a severity in the report.
 - When the review is rerun, keep the existing `## Verdicts` entries whose findings still appear, and recompute `blockers`.
