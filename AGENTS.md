@@ -74,15 +74,44 @@ Do not change any file except the report.
      goal: Review style, testing, performance, security and upgrade concerns in these AL files without changing them.
      inputs-available: [file-path]
      technologies: [al]
+     bc-version: 25
      enabled-layers: [microsoft, community, custom]
-     disabled-skills: []
+     disabled-skills:
+       - microsoft/skills/review/al-code-review.md
+       - microsoft/skills/review/al-appsource-review.md
+       - microsoft/skills/review/al-breaking-changes-review.md
+       - microsoft/skills/review/al-data-modeling-review.md
+       - microsoft/skills/review/al-error-handling-review.md
+       - microsoft/skills/review/al-events-review.md
+       - microsoft/skills/review/al-finance-review.md
+       - microsoft/skills/review/al-interfaces-review.md
+       - microsoft/skills/review/al-privacy-review.md
+       - microsoft/skills/review/al-query-review.md
+       - microsoft/skills/review/al-reporting-review.md
+       - microsoft/skills/review/al-scm-review.md
+       - microsoft/skills/review/al-telemetry-review.md
+       - microsoft/skills/review/al-ui-review.md
+       - microsoft/skills/review/al-web-services-review.md
+       - microsoft/skills/development/al-development-plan.md
+       - community/skills/review/al-agents-review.md
+       - community/skills/review/al-copilot-review.md
    ```
-   The `file-path` input is every file in **Review scope** above. Do not guess `bc-version`.
-4. Execute every dispatched action skill as Entry and `skills/do.md` describe, reading `skills/read.md` on demand. Rules in `custom/knowledge/` are part of the review. Where one contradicts a Microsoft or Community rule, the custom rule wins, and the losing rule goes in the report's suppressed list.
-5. Write the report in the **Review report contract** format below. Base it on the findings reports; don't invent findings, rule names or counts.
+   - The `file-path` input is every file in **Review scope** above.
+   - `bc-version: 25` comes from the apps' `app.json` (`"application": "25.0.0.0"`). That isn't a guess, so use it.
+   - Entry should dispatch exactly five skills: `al-style-review`, `al-testing-review`, `al-performance-review`, `al-security-review` and `al-upgrade-review`. Everything else is disabled on purpose, so every pair in the room runs the same review.
+4. Execute every dispatched action skill as Entry and `skills/do.md` describe, reading `skills/read.md` on demand. In this lab:
+   - Only leaf skills run, so the **Composition (super-skills)** parts of `skills/do.md` don't apply.
+   - Rules in `custom/knowledge/` are part of the review. Where one contradicts a Microsoft or Community rule, the custom rule wins, and the losing rule goes in the report's suppressed list.
+   - Include conditionally applicable rules (READ caps their findings at `medium` confidence).
+   - You may **read** files outside the review scope for context (e.g. the tables a codeunit uses), but report findings only on scope files.
+   - Keep each skill's JSON findings report in memory or in a temp folder **outside the repo**. Running `tools/Validate-FindingsReport.ps1` is optional.
+   - BCQuality's PowerShell helpers take arrays. Call them from a `pwsh` session or `pwsh -Command "& ./tools/... -Paths @('a','b')"`, not with `pwsh -File`, which can't pass arrays.
+5. Write the report in the **Review report contract** format below. Copy findings, severities and rule paths from the skills' findings reports; don't invent findings, rule names or counts.
 6. Reply with: the report path, the counts per severity, and the three findings you'd discuss first with your partner. Nothing more.
 
 If the review can't finish (time, context limits), write the report anyway with `outcome: partial` and say what was skipped.
+
+Expect this step to take **5–10 minutes**. Running the five skills in parallel (subagents or child contexts, if your agent has them) makes it faster.
 
 ## Step: "Write our rule"
 
@@ -107,6 +136,7 @@ The PR may contain **only** the pair's rule (plus optional sibling `.al` samples
 2. If the rule changed after the report was written, rerun **"Run the BCQuality Review"** first.
 3. If the report shows open blockers (`blockers` above 0), say so: the gate will go red. Offer to record verdicts (see the contract) and rerun, but don't edit AmuseYou code.
 4. Create a branch `rule/<slug>` and commit **only** those paths, with message `Rule: <rule title>`.
+   Then run the gate locally, exactly as the PR check will: `pwsh ./workshop/pipelines/gate/check-review-receipt.ps1 -BaseRef origin/main -RestrictPaths`. If `pwsh` isn't installed, skip this; the PR check runs it anyway. If it fails, show the messages and fix the report or rule before pushing.
 5. Fork and push:
    - **If `gh` is installed and logged in** (`gh auth status`):
      1. `gh repo fork JeremyVyska/directions-emea-2026-workshop --clone=false`
@@ -186,6 +216,10 @@ Empty (write "Not triaged yet.") straight after a review.>
 ```
 
 Rules:
+- Nothing between the `# BCQuality Review` title and `## Blockers` except, optionally, one short summary line.
+- **One bullet per location.** When the same rule fires in three files, write three bullets with the same rule path; count each one.
+- With nothing suppressed, write `Suppressed: None.`
+- `reviewed_with`: the agent product, plus the model in brackets if known, e.g. `GitHub Copilot (agent mode, GPT-x)` or `Claude Code (Claude Sonnet x)`.
 - `blockers` counts blockers that have **no** `accept` or `reject` verdict. A `fix` verdict leaves the blocker open, since AmuseYou isn't changed in this lab.
 - Copy severities and rule paths from the findings reports. Never raise or lower a severity in the report.
 - When the review is rerun, keep the existing `## Verdicts` entries whose findings still appear, and recompute `blockers`.
