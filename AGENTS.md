@@ -171,12 +171,20 @@ Take-home. **Don't run, don't commit, don't push.**
 2. Copy the matching reference file into `workshop/pipelines/generated/` (gitignored):
    - GitHub Actions: `workshop/pipelines/reference/github.yml` → `workshop/pipelines/generated/review-receipt-gate.yml`
    - Azure DevOps: `workshop/pipelines/reference/ado.yml` → `workshop/pipelines/generated/azure-pipelines.yml`
-3. Ask what their repo looks like (where reviews and rules should live; default branch name) and adapt the paths and branch in the copy. Keep the gate script call unchanged apart from paths.
-4. List the plug-in steps they'll do back home (from the comments in the reference file):
+3. Ask, one at a time:
+   - "What's your default branch?" (default `main`)
+   - "Where should review reports live in your app repo?" (default `reviews`)
+   - "Where will your team's BCQuality copy be checked out on a developer machine?" (e.g. `C:\Repos\CompanyBCQuality`; see `workshop/SHARING-PATTERNS.md`)
+
+   Adapt the branch and `REPORTS` in the yml copy. Keep the gate script call unchanged apart from paths. **Don't add `-RestrictPaths`**: that's only for a rules repo like this one.
+4. Copy `workshop/pipelines/reference/AGENTS-review-section.md` to `workshop/pipelines/generated/AGENTS-review-section.md` and fill in its placeholders (`<BCQUALITY_ROOT>`, `<REPORTS>`, `<BASE>`) from the answers. This is the "Run the BCQuality Review" step for **their** repo: it reviews a branch's diff instead of this room's fixed file list. They paste it into their app repo's `AGENTS.md`.
+5. List the plug-in steps they'll do back home (from the comments in the reference files):
    - where the yml goes in their repo,
    - copying `workshop/pipelines/gate/check-review-receipt.ps1` into their repo,
+   - pasting the generated section into their repo's `AGENTS.md`,
    - making the check required (GitHub: branch protection / ruleset required status check; Azure DevOps: build validation branch policy).
-5. Remind them: no LLM, API key or secret goes in the pipeline. The review stays local.
+6. Point them at the worked example: https://github.com/JeremyVyska/directions-emea-2026-workshop-demo (an AL app repo with the gate set up; PR #1 has no receipt and is red, PR #2 has one and is green).
+7. Remind them: no LLM, API key or secret goes in the pipeline. The review stays local.
 
 ## No agent?
 

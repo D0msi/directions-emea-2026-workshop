@@ -6,6 +6,8 @@
 # Plug-in steps for your own repo:
 #   1. Save this file as .github/workflows/review-receipt-gate.yml
 #   2. Copy check-review-receipt.ps1 to the path in SCRIPT below (or change SCRIPT).
+#      Paste AGENTS-review-section.md (same folder) into your repo's AGENTS.md, so every
+#      developer's agent knows how to produce the receipt this gate checks.
 #   3. Decide where reports live and set REPORTS (default workshop/reviews).
 #   4. Merge to your default branch once, so the check appears.
 #   5. Make it required: Settings → Rules → Rulesets (or Branches → branch protection)

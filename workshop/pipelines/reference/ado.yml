@@ -6,6 +6,8 @@
 # Plug-in steps for your own repo (Azure Repos):
 #   1. Save this file as azure-pipelines/review-receipt-gate.yml (any path works).
 #   2. Copy check-review-receipt.ps1 to the path in SCRIPT below (or change SCRIPT).
+#      Paste AGENTS-review-section.md (same folder) into your repo's AGENTS.md, so every
+#      developer's agent knows how to produce the receipt this gate checks.
 #   3. Decide where reports live and set REPORTS (default workshop/reviews).
 #   4. Pipelines → New pipeline → Azure Repos Git → Existing YAML file → pick this file.
 #   5. Make it required: Repos → Branches → (default branch) → Branch policies
