@@ -66,7 +66,7 @@ Read-only. Reply in at most 6 lines:
 
 Do not change any file except the report.
 
-1. If you don't know the pair's slug yet, ask once: "What's your pair name? (lowercase, dashes, e.g. `paris-07`)". The report goes to `workshop/reviews/<slug>.md`.
+1. If you don't know the pair's slug yet, ask once: "What's your pair name? (lowercase, dashes, e.g. `paris-07`)". The report goes to `workshop/reviews/<pair-slug>.md`.
 2. Prepare the knowledge index, if PowerShell 7 is available: run `pwsh ./tools/Build-KnowledgeIndex.ps1` from the repo root. If `pwsh` is missing or this fails, carry on: BCQuality falls back to reading the folders.
 3. Read `skills/entry.md` and follow it, with the repo root as the BCQuality root and this task context:
    ```yaml
@@ -123,30 +123,34 @@ One rule file per pair.
 1. Ask: "Which card? (path or category + number, e.g. `performance 01`)". Read the card from `workshop/cards/`.
 2. Ask: "Side A, Side B, or your own wording?" Then ask for **one sentence of why**.
    Advanced pairs may skip the card and give a free-form rule. Then ask which domain it belongs to: `style`, `testing`, `performance`, `security` or `upgrade`.
-3. Create `custom/knowledge/<domain>/<slug>.md` from `custom/_TEMPLATE.md`. Use the card's `bcquality_domain` as `<domain>` and a short kebab-case `<slug>` that describes the rule. Requirements (BCQuality's `skills/read.md`):
+3. Create `custom/knowledge/<domain>/<rule-slug>.md` from `custom/_TEMPLATE.md`. Use the card's `bcquality_domain` as `<domain>` and a short kebab-case `<rule-slug>` that describes the rule. Requirements (BCQuality's `skills/read.md`):
    - All six frontmatter fields present and non-empty: `bc-version`, `domain`, `keywords`, `technologies`, `countries`, `application-area`.
    - `# Title`, `## Description` (mention the card path and side), `## Best Practice`, `## Anti Pattern`. The stance must be in Best Practice / Anti Pattern, or the review ignores it.
-   - **No fenced code blocks.** Code goes in a sibling `<slug>.bad.al` / `<slug>.good.al` file, linked from the text.
+   - **No fenced code blocks.** Code goes in a sibling `<rule-slug>.bad.al` / `<rule-slug>.good.al` file, linked from the text.
    - Delete the template's instruction comment.
 4. Show the file path and the rule's title, Best Practice and Anti Pattern (max 8 lines). Ask "OK?" and adjust if needed.
-5. Rerun **"Run the BCQuality Review"** (same slug: overwrite the report). Then say in one or two lines **whether the new rule fired**: a finding citing `custom/knowledge/...`, or a Microsoft rule now listed as suppressed. If it didn't fire, say why you think so (e.g. the scope has no code the rule applies to).
+5. Rerun **"Run the BCQuality Review"** with the pair's slug (ask once if you don't know it). It overwrites `workshop/reviews/<pair-slug>.md` in the **Review report contract** format. **This report is the pair's receipt for Lab 3**, so "Submit our rule" commits it as-is, with no new review. Keep the `## Verdicts` entries from the earlier report whose findings still appear, and recompute `blockers`.
+6. Say in one or two lines **whether the new rule fired**: a finding citing `custom/knowledge/...`, or a Microsoft rule now listed as suppressed. If it didn't fire, say why you think so (e.g. the scope has no code the rule applies to).
+7. If `blockers` is above 0, say: "The Lab 3 gate will be red until each blocker has an accept/reject verdict. Want to record verdicts now?"
 
 ## Step: "Submit our rule"
 
 The PR may contain **only** the pair's rule (plus optional sibling `.al` samples) under `custom/knowledge/` and the pair's report under `workshop/reviews/`. One person per pair does this.
 
-1. Check `git status`. Identify the rule file(s) and the report. If anything else is modified, list it and say it will be left out of the PR.
-2. If the rule changed after the report was written, rerun **"Run the BCQuality Review"** first.
-3. If the report shows open blockers (`blockers` above 0), say so: the gate will go red. Offer to record verdicts (see the contract) and rerun, but don't edit AmuseYou code.
-4. Create a branch `rule/<slug>` and commit **only** those paths, with message `Rule: <rule title>`.
+**Don't run a new review in this step.** The receipt is the report the "Write our rule" rerun already wrote.
+
+1. Check `git status`. Identify the rule file(s) under `custom/knowledge/` and the report `workshop/reviews/<pair-slug>.md`. If anything else is modified, list it and say it will be left out of the PR.
+2. Reuse that report as the receipt. Only if it's **missing**, or the rule's Best Practice / Anti Pattern text was changed after the report was written, say so and ask: "Rerun the review now (~5 min), or submit as-is?"
+3. If the report shows open blockers (`blockers` above 0), say so: the gate will go red. Offer to record verdicts: add `accept: <reason>` or `reject: <reason>` lines under `## Verdicts` and recompute `blockers`. That's an edit to the report, not a new review. Don't edit AmuseYou code.
+4. Create a branch `rule/<rule-slug>` (the rule file's name without `.md`) and commit **only** those paths, with message `Rule: <rule title>`.
    Then run the gate locally, exactly as the PR check will: `pwsh ./workshop/pipelines/gate/check-review-receipt.ps1 -BaseRef origin/main -RestrictPaths`. If `pwsh` isn't installed, skip this; the PR check runs it anyway. If it fails, show the messages and fix the report or rule before pushing.
 5. Fork and push:
    - **If `gh` is installed and logged in** (`gh auth status`):
      1. `gh repo fork JeremyVyska/directions-emea-2026-workshop --clone=false`
      2. `git remote add fork https://github.com/<their-login>/directions-emea-2026-workshop.git` (get the login with `gh api user --jq .login`; skip if the remote exists).
-     3. `git push fork rule/<slug>`
-     4. `gh pr create --repo JeremyVyska/directions-emea-2026-workshop --base main --head <their-login>:rule/<slug> --title "Rule: <rule title>"`, with a body following `.github/pull_request_template.md`.
-   - **Without `gh`:** walk the user through it one step at a time: open https://github.com/JeremyVyska/directions-emea-2026-workshop, click **Fork**, give you the fork URL, and you run the `git remote add fork ...` and `git push` above. Then give them the compare link `https://github.com/JeremyVyska/directions-emea-2026-workshop/compare/main...<their-login>:directions-emea-2026-workshop:rule/<slug>` to open the PR.
+     3. `git push fork rule/<rule-slug>`
+     4. `gh pr create --repo JeremyVyska/directions-emea-2026-workshop --base main --head <their-login>:rule/<rule-slug> --title "Rule: <rule title>"`, with a body following `.github/pull_request_template.md`.
+   - **Without `gh`:** walk the user through it one step at a time: open https://github.com/JeremyVyska/directions-emea-2026-workshop, click **Fork**, give you the fork URL, and you run the `git remote add fork ...` and `git push` above. Then give them the compare link `https://github.com/JeremyVyska/directions-emea-2026-workshop/compare/main...<their-login>:directions-emea-2026-workshop:rule/<rule-slug>` to open the PR.
    - The PR's **base must be `JeremyVyska/directions-emea-2026-workshop` `main`**. Never `microsoft/BCQuality`.
 6. Reply with the PR link and: "The **Review receipt** check will go green or red in about a minute."
 
@@ -197,7 +201,7 @@ For Lab 3 you can submit through the browser: on GitHub, **Add file → Create n
 
 ## Review report contract
 
-Path: `workshop/reviews/<slug>.md`. The PR gate (`workshop/pipelines/gate/check-review-receipt.ps1`) parses this, so keep the shape exact.
+Path: `workshop/reviews/<pair-slug>.md`. The PR gate (`workshop/pipelines/gate/check-review-receipt.ps1`) parses this, so keep the shape exact.
 
 ```markdown
 ---
@@ -209,7 +213,7 @@ blockers_found: <integer>                 # blocker-severity findings in the rev
 blockers: <integer>                       # OPEN blockers: blockers_found minus those with an accept/reject verdict
 ---
 
-# BCQuality Review: <slug>
+# BCQuality Review: <pair-slug>
 
 ## Blockers
 
