@@ -4,6 +4,8 @@ Instructions for any AI agent (Claude Code, GitHub Copilot, Cursor, Codex, ...) 
 
 This repo is a workshop copy of [BCQuality](https://github.com/microsoft/BCQuality) (MIT) with the lab material added under `workshop/`. Attendees work in pairs, and each person drives their own agent.
 
+`CLAUDE.md` and `.github/copilot-instructions.md` only point here. This file is the single source of instructions.
+
 ## How to answer in this workshop
 
 - **Keep answers short.** People read them on a projector or a laptop shared with a neighbour.
